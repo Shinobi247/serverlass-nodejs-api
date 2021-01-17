@@ -1,7 +1,5 @@
 service: sls-api
 
-frameworkVersion: "2"
-
 custom:
   settings:
     POSTS_TABLE: posts
@@ -9,33 +7,58 @@ custom:
 provider:
   name: aws
   runtime: nodejs12.x
+  region: us-east-1
   environment: ${self:custom.settings}
   iamRoleStatements:
-    - Effects: "Allow"
+    - Effect: "Allow"
       Action:
-        - dynamodb: DescribeTable
-        - dynamodb: Scan
-        - dynamodb: GetItem
-        - dynamodb: PutItem
-        - dynamodb: UpdateItem
-        - dynamodb: DeleteItem
+        - "dynamodb:*"
       Resource:
-        - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.settings.POSTS_TABLE}"
+        - "*"
 
 functions:
-  hello:
+  createPost:
     handler: handler.createPost
     events:
       - http:
-        path: /post
-        method: post
-
+          path: /post
+          method: post
+  getAllPosts:
+    handler: handler.getAllPosts
+    events:
+      - http:
+          path: /posts
+          method: get
+  getPosts:
+    handler: handler.getPosts
+    events:
+      - http:
+          path: /posts/{number}
+          method: get
+  getPost:
+    handler: handler.getPost
+    events:
+      - http:
+          path: /post/{id}
+          method: get
+  updatePost:
+    handler: handler.updatePost
+    events:
+      - http:
+          path: /post/{id}
+          method: put
+  deletePost:
+    handler: handler.deletePost
+    events:
+      - http:
+          path: /post/{id}
+          method: delete
 resources:
   Resources:
     PostsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        AttributeDefinations:
+        AttributeDefinitions:
           - AttributeName: "id"
             AttributeType: "S"
         KeySchema:
